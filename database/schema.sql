@@ -134,8 +134,6 @@ CREATE TABLE LOG_AUDITORIA (
 CREATE INDEX idx_job_data         ON JOB_BACKUP (data_execucao);
 CREATE INDEX idx_job_ativo_status ON JOB_BACKUP (id_ativo, status);
 CREATE INDEX idx_falha_status     ON FALHA (status_resolucao);
-CREATE INDEX idx_falha_job        ON FALHA (id_job);
-CREATE INDEX idx_rest_job         ON RESTAURACAO (id_job);
 CREATE INDEX idx_log_usuario_data ON LOG_AUDITORIA (id_usuario, data_hora);
 
 -- ---------------------------------------------------------------------
