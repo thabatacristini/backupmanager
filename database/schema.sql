@@ -128,3 +128,40 @@ CREATE TABLE LOG_AUDITORIA (
     REFERENCES USUARIO (id_usuario) ON DELETE SET NULL ON UPDATE CASCADE
 );
 
+-- ---------------------------------------------------------------------
+-- Índices extras (o MySQL já cria índices automáticos para as chaves estrangeiras)
+-- ---------------------------------------------------------------------
+CREATE INDEX idx_job_data         ON JOB_BACKUP (data_execucao);
+CREATE INDEX idx_job_ativo_status ON JOB_BACKUP (id_ativo, status);
+CREATE INDEX idx_falha_status     ON FALHA (status_resolucao);
+CREATE INDEX idx_falha_job        ON FALHA (id_job);
+CREATE INDEX idx_rest_job         ON RESTAURACAO (id_job);
+CREATE INDEX idx_log_usuario_data ON LOG_AUDITORIA (id_usuario, data_hora);
+
+-- ---------------------------------------------------------------------
+-- Views usadas pelo painel de monitoramento
+-- ---------------------------------------------------------------------
+CREATE VIEW vw_taxa_sucesso_por_ativo AS
+SELECT a.id_ativo,
+       a.nome_sistema,
+       a.criticidade,
+       COUNT(j.id_job) AS total_jobs,
+       SUM(CASE WHEN j.status = 'ok'    THEN 1 ELSE 0 END) AS jobs_ok,
+       SUM(CASE WHEN j.status = 'falha' THEN 1 ELSE 0 END) AS jobs_falha,
+       ROUND(100.0 * SUM(CASE WHEN j.status = 'ok' THEN 1 ELSE 0 END) / COUNT(j.id_job), 1) AS pct_sucesso
+FROM ATIVO_CRITICO a
+JOIN JOB_BACKUP j ON j.id_ativo = a.id_ativo
+GROUP BY a.id_ativo, a.nome_sistema, a.criticidade;
+
+CREATE VIEW vw_falhas_abertas AS
+SELECT f.id_falha,
+       a.nome_sistema,
+       j.data_execucao,
+       f.categoria,
+       f.status_resolucao,
+       u.nome AS registrado_por
+FROM FALHA f
+JOIN JOB_BACKUP j    ON j.id_job = f.id_job
+JOIN ATIVO_CRITICO a ON a.id_ativo = j.id_ativo
+JOIN USUARIO u       ON u.id_usuario = f.id_usuario
+WHERE f.status_resolucao <> 'resolvido';
