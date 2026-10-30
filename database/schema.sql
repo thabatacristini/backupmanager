@@ -114,3 +114,17 @@ CREATE TABLE RESTAURACAO (
   CONSTRAINT chk_rest_datas CHECK (data_conclusao IS NULL OR data_conclusao >= data_solicitacao)
 );
 
+-- ---------------------------------------------------------------------
+-- LOG_AUDITORIA: quem fez o quê e quando (defeito D06 da inspeção / RF08)
+-- ---------------------------------------------------------------------
+CREATE TABLE LOG_AUDITORIA (
+  id_log          INT AUTO_INCREMENT PRIMARY KEY,
+  id_usuario      INT NULL,
+  tabela_afetada  VARCHAR(50) NOT NULL,
+  acao            ENUM('INSERT','UPDATE','DELETE') NOT NULL,
+  id_registro     INT NULL,
+  data_hora       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_log_usuario FOREIGN KEY (id_usuario)
+    REFERENCES USUARIO (id_usuario) ON DELETE SET NULL ON UPDATE CASCADE
+);
+
